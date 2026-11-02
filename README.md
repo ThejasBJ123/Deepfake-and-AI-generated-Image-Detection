@@ -105,6 +105,33 @@ pip install -r requirements.txt
 
 ---
 
+## 💾 Official Dataset Download Links
+
+To train and benchmark this detector on public, large-scale datasets, use any of the following standard benchmark sources:
+
+| Dataset | Category | Scale & Characteristics | Download Links |
+|---|---|---|---|
+| **CIFAKE** | Real vs. AI-Generated (Diffusion) | 60,000 images (30,000 authentic CIFAR-10 vs. 30,000 synthetic Stable Diffusion images) | [Kaggle Download](https://www.kaggle.com/datasets/birdy654/cifake-real-and-ai-generated-synthetic-images) \| [Hugging Face](https://huggingface.co/datasets/Hemg/cifake) |
+| **140k Real & Fake Faces** | Real (FFHQ) vs. Fake (StyleGAN) | 140,000 high-resolution faces (70,000 real Flickr-Faces-HQ vs. 70,000 StyleGAN synthetic faces) | [Kaggle Download](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces) |
+| **Deepfake vs Real Faces** | Real vs. Deepfake Manipulations | Curated balanced face photographs and deepfake face-swaps | [Hugging Face Dataset](https://huggingface.co/datasets/dima806/deepfake_vs_real_image_detection) |
+| **FaceForensics++** | FaceSwap, Deepfakes, NeuralTextures | 1,000 video sequences manipulated with advanced deepfake architectures | [FaceForensics++ Portal](https://github.com/ondyari/FaceForensics) |
+| **Celeb-DF (v2)** | High-Quality Celebrity Deepfakes | 5,639 high-fidelity deepfake video sequences with reduced boundary artifacts | [Celeb-DF Repository](https://github.com/yuezunli/celeb-deepfakeforensics) |
+| **WIDER FACE** | Authentic Physical Camera Human Faces | 32,203 images, 393,703 annotated human faces under challenging real-world scenes | [Official WIDER FACE Portal](http://shuoyang1213.me/WIDERFACE/) |
+
+### 📂 How to Structure Downloaded Datasets:
+Place your downloaded real and fake images in:
+```
+data/raw/
+├── real/   <-- Place authentic camera photographs here (.jpg, .png)
+└── fake/   <-- Place AI-generated images or deepfake face swaps here (.jpg, .png)
+```
+Then run the automated ingestion script to create balanced `train/`, `val/`, and `test/` splits:
+```bash
+python src/prepare_dataset.py --real-dir "data/raw/real" --fake-dir "data/raw/fake" --max-images 1000
+```
+
+---
+
 ### Step 2: Prepare the Dataset
 You can prepare the dataset in three flexible ways:
 
