@@ -1,0 +1,10 @@
+ultralytics
+opencv-python
+Pillow
+PyYAML
+streamlit
+matplotlib
+pandas
+scikit-learn
+seaborn
+scipy

@@ -1,0 +1,16 @@
+{
+  "accuracy": 0.6666666666666666,
+  "roc_auc": 0.6617283950617284,
+  "precision_fake": 0.9411764705882353,
+  "recall_fake": 0.35555555555555557,
+  "f1_fake": 0.5161290322580645,
+  "precision_real": 0.6027397260273972,
+  "recall_real": 0.9777777777777777,
+  "f1_real": 0.7457627118644068,
+  "true_negatives": 44,
+  "false_positives": 1,
+  "false_negatives": 29,
+  "true_positives": 16,
+  "latency_ms": 29.918133332264713,
+  "fps": 33.4245452045488
+}

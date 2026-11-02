@@ -1,0 +1,27 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Raw and generated image datasets (large files)
+data/raw/
+data/deepfake_dataset/
+data/face_yolo/
+
+# Base pretrained weights & cache
+*.pt
+!outputs/deepfake_detector/weights/best.pt
+weights/
+
+# System and editor files
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# Temp and logs
+*.log
+runs/
