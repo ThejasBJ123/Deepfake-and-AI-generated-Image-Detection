@@ -87,27 +87,147 @@ deep_face/
 
 ---
 
-## 🚀 Complete Execution Sequence
+## 🚀 Complete Step-by-Step Execution & Dataset Installation Guide
 
-Follow these steps from the project root:
+Follow these exact steps from your project root (`D:\Thejas\deep_face`):
 
-### Step 1: Install Dependencies
-```bash
-# Upgrade pip
-python -m pip install --upgrade pip
+---
 
-# Install PyTorch with CUDA acceleration (for NVIDIA GPUs)
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+### Step 1: Open Terminal & Activate Environment
 
-# Install project requirements
+Open **PowerShell** or Command Prompt in the project root:
+
+```powershell
+cd D:\Thejas\deep_face
+
+# Activate virtual environment
+.\.venv\Scripts\Activate.ps1
+```
+*(If PowerShell blocks execution, run `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` once).*
+
+Verify all dependencies are installed:
+```powershell
 pip install -r requirements.txt
 ```
 
 ---
 
-## 💾 Official Dataset Download Links
+### Step 2: Download & Install the Dataset
 
-To train and benchmark this detector on public, large-scale datasets, use any of the following standard benchmark sources:
+You can choose either **Option A (Instant / Zero-Download)** or **Option B (Download from Kaggle / Hugging Face)**.
+
+#### 🌟 Option A: Instant Local Setup (No Download Needed)
+Your project already contains **12,880 real camera photographs** at `data/raw/WIDER_train/images/`.
+
+Run this single command to harvest real photos and synthesize realistic AI-manipulated/deepfake pairs (with GAN checkerboard frequencies, face-swap seams, and diffusion smoothing):
+
+```powershell
+python src/prepare_dataset.py --max-images 500
+```
+This automatically partitions your data into:
+* `data/deepfake_dataset/train/` (70% - 350 real & fake images)
+* `data/deepfake_dataset/val/` (15% - 75 real & fake images)
+* `data/deepfake_dataset/test/` (15% - 75 real & fake images)
+
+---
+
+#### 🌐 Option B: Download External Benchmark Dataset (Kaggle / Hugging Face)
+
+To train on official public deepfake benchmarks:
+
+1. **Download the Dataset:**
+   * **[140k Real and Fake Faces on Kaggle](https://www.kaggle.com/datasets/xhlulu/140k-real-and-fake-faces)** (70k real FFHQ faces vs. 70k StyleGAN synthetic faces)
+   * OR **[CIFAKE on Kaggle](https://www.kaggle.com/datasets/birdy654/cifake-real-and-ai-generated-synthetic-images)** (30k real vs. 30k Stable Diffusion images)
+   * OR **[Deepfake vs Real Faces on Hugging Face](https://huggingface.co/datasets/dima806/deepfake_vs_real_image_detection)**
+
+2. **Extract the Downloaded Zip:**
+   Extract the `.zip` archive on your computer.
+
+3. **Place the Images into `data/raw/`:**
+   Structure the extracted files as follows:
+   ```
+   D:\Thejas\deep_face\data\raw\
+   ├── real\    <-- Paste authentic camera photographs here (.jpg, .png)
+   └── fake\    <-- Paste AI-generated or deepfake images here (.jpg, .png)
+   ```
+
+4. **Run the Dataset Partitioning Script:**
+   ```powershell
+   python src/prepare_dataset.py --real-dir "data/raw/real" --fake-dir "data/raw/fake" --max-images 1000
+   ```
+
+5. **Verify Dataset Structure:**
+   ```powershell
+   python src/download_dataset.py --check
+   ```
+   *You should see `[OK]` next to `train`, `val`, and `test` splits.*
+
+---
+
+### Step 3: Train the Deep Learning Model
+
+Run the training script to fine-tune the deep neural classifier on your GPU (NVIDIA RTX A3000):
+
+```powershell
+python src/train.py --epochs 15 --batch 16 --imgsz 224
+```
+
+* **What happens:** The model trains over 15 epochs with Automatic Mixed Precision (AMP), computing top-1 accuracy and cross-entropy loss.
+* **Weights saved to:** `outputs/deepfake_detector/weights/best.pt`
+* **Training curves saved to:** `outputs/deepfake_detector/results.png`
+
+---
+
+### Step 4: Evaluate Performance on Unseen Test Split
+
+Evaluate the trained model on held-out test images:
+
+```powershell
+python src/evaluate.py --split test
+```
+
+* **What it outputs:**
+  * **Accuracy, Precision, Recall, and F1-Score**
+  * **ROC-AUC Score**
+  * **Inference Speed / Latency** (FPS)
+  * Generates confusion matrix: `outputs/evaluation/test_set/confusion_matrix.png`
+  * Generates ROC curve: `outputs/evaluation/test_set/roc_curve.png`
+  * Saves report: `outputs/evaluation/test_set/metrics_summary.txt`
+
+---
+
+### Step 5: Test Single Image via CLI
+
+Run forensic analysis on any image from the terminal:
+
+```powershell
+# Test an AI-generated/Deepfake image:
+python src/predict_image.py --image "test_images/fake_12_Group_Group_12_Group_Group_12_320.jpg"
+
+# Test a Real camera photograph:
+python src/predict_image.py --image "test_images/12_Group_Large_Group_12_Group_Large_Group_12_5.jpg"
+```
+
+The script prints the **Verdict (% Fake vs % Real)** and exports a 3-panel evidence visual (`Original | ELA | 2D-FFT Spectrum`) to `outputs/predictions/`.
+
+---
+
+### Step 6: Launch the Interactive Web Dashboard
+
+Launch the Streamlit web application:
+
+```powershell
+python -m streamlit run src/app.py --server.port 8501
+```
+
+1. Open your browser at **[http://localhost:8501](http://localhost:8501)**.
+2. In the **"Single Image Inspector"** tab, click **Browse files** and upload any picture from `test_images/` or your computer.
+3. Inspect the **Verdict badge** (🚨 FAKE or ✅ REAL), **Error Level Analysis (ELA)**, **2D-FFT Power Spectrum**, and **PRNU Sensor Noise**.
+4. Click **Download Forensic Evidence Panel** to export the inspection report.
+
+---
+
+## 💾 Official Dataset Benchmark Sources
 
 | Dataset | Category | Scale & Characteristics | Download Links |
 |---|---|---|---|
@@ -117,99 +237,6 @@ To train and benchmark this detector on public, large-scale datasets, use any of
 | **FaceForensics++** | FaceSwap, Deepfakes, NeuralTextures | 1,000 video sequences manipulated with advanced deepfake architectures | [FaceForensics++ Portal](https://github.com/ondyari/FaceForensics) |
 | **Celeb-DF (v2)** | High-Quality Celebrity Deepfakes | 5,639 high-fidelity deepfake video sequences with reduced boundary artifacts | [Celeb-DF Repository](https://github.com/yuezunli/celeb-deepfakeforensics) |
 | **WIDER FACE** | Authentic Physical Camera Human Faces | 32,203 images, 393,703 annotated human faces under challenging real-world scenes | [Official WIDER FACE Portal](http://shuoyang1213.me/WIDERFACE/) |
-
-### 📂 How to Structure Downloaded Datasets:
-Place your downloaded real and fake images in:
-```
-data/raw/
-├── real/   <-- Place authentic camera photographs here (.jpg, .png)
-└── fake/   <-- Place AI-generated images or deepfake face swaps here (.jpg, .png)
-```
-Then run the automated ingestion script to create balanced `train/`, `val/`, and `test/` splits:
-```bash
-python src/prepare_dataset.py --real-dir "data/raw/real" --fake-dir "data/raw/fake" --max-images 1000
-```
-
----
-
-### Step 2: Prepare the Dataset
-You can prepare the dataset in three flexible ways:
-
-#### Option A: Automatic Harvest from Local Real Photos + Deepfake Synthesis (Default)
-```bash
-python src/prepare_dataset.py --max-images 500
-```
-- Slices real photos from `data/raw/WIDER_train/images`.
-- Synthesizes balanced AI-manipulated/deepfake pairs with FaceSwap boundary seams, GAN checkerboard frequency noise, and diffusion smoothing.
-- Automatically partitions into `train/`, `val/`, and `test/`.
-
-#### Option B: Ingest External Datasets (e.g. CIFAKE, FaceForensics++, 140k Real/Fake Faces)
-```bash
-python src/prepare_dataset.py --real-dir "path/to/real" --fake-dir "path/to/fake" --max-images 1000
-```
-
-#### Option C: Self-Contained Synthetic Benchmark Generator
-```bash
-python src/prepare_dataset.py --generate-sample --sample-count 400
-```
-
-Verify your dataset structure at any time:
-```bash
-python src/download_dataset.py --check
-```
-
----
-
-### Step 3: Train the Deep Learning Model
-```bash
-python src/train.py --epochs 15 --batch 16 --imgsz 224
-```
-- Uses CUDA GPU acceleration (`NVIDIA RTX A3000`).
-- Optimal weights are saved to `outputs/deepfake_detector/weights/best.pt`.
-- Training curves and loss progressions are saved to `outputs/deepfake_detector/results.png`.
-
----
-
-### Step 4: Evaluate Performance on Unseen Test Split
-```bash
-python src/evaluate.py --split test
-```
-Outputs:
-- **Accuracy**: Overall classification correctness on unseen data.
-- **Precision (Fake)**: Percentage of flagged fakes that were truly synthetic.
-- **Recall (Fake)**: Percentage of deepfakes successfully identified.
-- **F1-Score**: Harmonic mean of Precision and Recall.
-- **ROC-AUC**: Area under the Receiver Operating Characteristic curve.
-- **Confusion Matrix**: Visual breakdown of TP, FP, TN, FN saved to `outputs/evaluation/test_set/confusion_matrix.png`.
-- **Inference Speed**: Milliseconds per image and frames per second (FPS).
-
----
-
-### Step 5: Detect Deepfakes in Any Image via CLI
-```bash
-# Single image prediction:
-python src/predict_image.py --image "test_images/fake_0_Parade_marchingband_1_175.jpg"
-
-# Batch prediction on an entire folder:
-python src/predict_image.py --image "test_images/" --output "outputs/predictions"
-```
-Produces a consolidated 3-panel forensic proof image:
-`[ Original Image | Error Level Analysis (ELA) | 2D-FFT Power Spectrum ]` with classification banner in `outputs/predictions/`.
-
----
-
-### Step 6: Launch the Interactive Streamlit Web Dashboard
-```bash
-streamlit run src/app.py
-```
-Open **`http://localhost:8501`** in your browser:
-* **Upload Image:** Drag-and-drop any photograph or digital portrait.
-* **Instant Verdict:** Animated verdict badge with confidence score (e.g. `98.4% FAKE`).
-* **Multi-Panel Forensics:** Inspect Error Level Analysis, 2D-FFT Power Spectrum, and PRNU Sensor Noise.
-* **Evidence Breakdown:** Tabular Explainable AI (XAI) indicators.
-* **Export:** One-click download of the complete forensic evidence report.
-* **Benchmark Gallery:** Test against pre-loaded real and fake images.
-* **Evaluation Dashboard:** Inspect confusion matrices, ROC curves, and training metrics directly in the UI.
 
 ---
 
